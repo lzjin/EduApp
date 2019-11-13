@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
 
+import com.amap.api.maps.MapView;
 import com.danqiu.online.edu.R;
 import com.danqiu.online.edu.base.BaseActivity;
 import com.danqiu.online.edu.mvp.contract.TestContract;
@@ -32,7 +33,7 @@ import pub.devrel.easypermissions.EasyPermissions;
  * Created by lzj on 2019/10/22
  * Describe ：注释
  */
-public class TestActivity extends BaseActivity<TestContract.Presenter> implements TestContract.View,EasyPermissions.PermissionCallbacks {
+public class TestActivity extends BaseActivity<TestContract.Presenter> implements TestContract.View, EasyPermissions.PermissionCallbacks {
 
     @BindView(R.id.edt_user)
     EditText edtUser;
@@ -40,7 +41,10 @@ public class TestActivity extends BaseActivity<TestContract.Presenter> implement
     EditText edtPass;
     @BindView(R.id.btn_login)
     Button btnLogin;
-    String mUpdateUrl="http://www.danqiuedu.com/uapi/api/pub/sysConfig/getVal";
+    String mUpdateUrl = "http://www.danqiuedu.com/uapi/api/pub/sysConfig/getVal";
+    @BindView(R.id.map)
+    MapView mMapView;
+
     @Override
     protected TestContract.Presenter _createPresenter() {
         return new TestPresenter();
@@ -49,6 +53,10 @@ public class TestActivity extends BaseActivity<TestContract.Presenter> implement
     @Override
     protected void _onCreate(Bundle savedInstanceState) {
         requestPermission();
+
+
+        //在activity执行onCreate时执行mMapView.onCreate(savedInstanceState)，创建地图
+        mMapView.onCreate(savedInstanceState);
     }
 
     @Override
@@ -64,7 +72,7 @@ public class TestActivity extends BaseActivity<TestContract.Presenter> implement
 
     public void onLogin() {
         // 登录操作
-       // mPresenter.login(edtUser.getText().toString().trim(), edtPass.getText().toString().trim());
+        // mPresenter.login(edtUser.getText().toString().trim(), edtPass.getText().toString().trim());
 
 //        XUpdate.newBuild(activity)
 //                .isGet(true)
@@ -79,10 +87,10 @@ public class TestActivity extends BaseActivity<TestContract.Presenter> implement
     /**
      * app更新
      */
-    private void getAppVersion(){
+    private void getAppVersion() {
 
-        Map<String,String> map=new HashMap<>();
-        map.put("paramKey","APPVersion,APPDownAddress");
+        Map<String, String> map = new HashMap<>();
+        map.put("paramKey", "APPVersion,APPDownAddress");
 
         new UpdateAppManager
                 .Builder()
@@ -112,7 +120,7 @@ public class TestActivity extends BaseActivity<TestContract.Presenter> implement
 
     @Override
     public void onLoading() {
-       showDialog("登录中...");
+        showDialog("登录中...");
     }
 
     @Override
@@ -122,7 +130,7 @@ public class TestActivity extends BaseActivity<TestContract.Presenter> implement
 
     @Override
     public void onComplete() {
-        L.i("test","test---------------回调");
+        L.i("test", "test---------------回调");
         dismissDialog();
     }
 
@@ -133,41 +141,45 @@ public class TestActivity extends BaseActivity<TestContract.Presenter> implement
 
     @Override
     public void onError(String error) {
-        ToastUtil.showShort(this,error);
+        ToastUtil.showShort(this, error);
     }
 
     @Override
     public void onSuccess(Object object) {
-        ToastUtil.showShort(this,"登录成功");
+        ToastUtil.showShort(this, "登录成功");
     }
+
     /**
      * 允许权限成功后触发
      */
     @Override
     public void onPermissionsGranted(int requestCode, @NonNull List<String> perms) {
-        ToastUtil.showShort(this,"授权成功");
+        ToastUtil.showShort(this, "授权成功");
     }
+
     /**
      * 禁止权限后触发
      */
     @Override
     public void onPermissionsDenied(int requestCode, @NonNull List<String> perms) {
-        ToastUtil.showShort(this,"您已拒绝相关权限，可到设置里自行开启");
+        ToastUtil.showShort(this, "您已拒绝相关权限，可到设置里自行开启");
     }
+
     /**
      * 请求授权
      */
     @AfterPermissionGranted(1001)
-    private void requestPermission(){
-        String[] perms = {Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.CAMERA};
+    private void requestPermission() {
+        String[] perms = {Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA};
         if (EasyPermissions.hasPermissions(this, perms)) {
             //授权成功后
-            ToastUtil.showShort(this,"授权成功");
-        }else {
+            ToastUtil.showShort(this, "授权成功");
+        } else {
             //没有权限的话，先提示，点确定后弹出系统的授权提示框
             EasyPermissions.requestPermissions(this, "为了更好的用户体验需要获取以下权限", 1001, perms);
         }
     }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);

@@ -33,7 +33,7 @@ import pub.devrel.easypermissions.EasyPermissions;
  * Created by lzj on 2019/10/22
  * Describe ：注释
  */
-public class TestActivity extends BaseActivity<TestContract.Presenter> implements TestContract.View, EasyPermissions.PermissionCallbacks {
+public class TestActivity extends BaseActivity<TestPresenter> implements TestContract.View, EasyPermissions.PermissionCallbacks {
 
     @BindView(R.id.edt_user)
     EditText edtUser;
@@ -46,7 +46,7 @@ public class TestActivity extends BaseActivity<TestContract.Presenter> implement
     MapView mMapView;
 
     @Override
-    protected TestContract.Presenter _createPresenter() {
+    protected TestPresenter _createPresenter() {
         return new TestPresenter();
     }
 

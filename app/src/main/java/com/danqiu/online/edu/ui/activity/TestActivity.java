@@ -11,17 +11,12 @@ import com.danqiu.online.edu.R;
 import com.danqiu.online.edu.base.BaseActivity;
 import com.danqiu.online.edu.mvp.contract.TestContract;
 import com.danqiu.online.edu.mvp.presenter.TestPresenter;
-import com.danqiu.online.edu.retrofit.ApiService;
 import com.danqiu.online.edu.utils.L;
 import com.danqiu.online.edu.utils.ToastUtil;
-import com.danqiu.online.edu.xupdate.MyUpdateAppHttpUtil;
-import com.danqiu.online.edu.xupdate.MyUpdateCallback;
-import com.vector.update_app.UpdateAppManager;
-import com.vector.update_app.listener.ExceptionHandler;
+import com.danqiu.online.edu.xupdate.MyUpdateParser;
+import com.xuexiang.xupdate.XUpdate;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import androidx.annotation.NonNull;
 import butterknife.BindView;
@@ -74,43 +69,48 @@ public class TestActivity extends BaseActivity<TestPresenter> implements TestCon
         // 登录操作
         // mPresenter.login(edtUser.getText().toString().trim(), edtPass.getText().toString().trim());
 
-//        XUpdate.newBuild(activity)
-//                .isGet(true)
-//                .updateUrl(mUpdateUrl)
-//                .updateParser(new MyUpdateParser()) //设置自定义的版本更新解析器
-//                .supportBackgroundUpdate(true)
-//                .update();
-
+        getAppVersion2();
         getAppVersion();
     }
+    /**
+     * app更新
+     */
+    private void getAppVersion2() {
 
+        XUpdate.newBuild(activity)
+                .isGet(true)
+                .updateUrl(mUpdateUrl)
+                .updateParser(new MyUpdateParser()) //设置自定义的版本更新解析器
+                .supportBackgroundUpdate(true)
+                .update();
+    }
     /**
      * app更新
      */
     private void getAppVersion() {
 
-        Map<String, String> map = new HashMap<>();
-        map.put("paramKey", "APPVersion,APPDownAddress");
-
-        new UpdateAppManager
-                .Builder()
-                .setActivity(this)
-                .setPost(false)
-                // .setAppKey()
-                .setParams(map)
-                //更新地址
-                .setUpdateUrl(ApiService.updateApp)
-                //全局异常捕获
-                .handleException(new ExceptionHandler() {
-                    @Override
-                    public void onException(Exception e) {
-                        e.printStackTrace();
-                    }
-                })
-                //实现httpManager接口的对象
-                .setHttpManager(new MyUpdateAppHttpUtil())
-                .build()
-                .checkNewApp(new MyUpdateCallback());
+//        Map<String, String> map = new HashMap<>();
+//        map.put("paramKey", "APPVersion,APPDownAddress");
+//
+//        new UpdateAppManager
+//                .Builder()
+//                .setActivity(this)
+//                .setPost(false)
+//                // .setAppKey()
+//                .setParams(map)
+//                //更新地址
+//                .setUpdateUrl(ApiService.updateApp)
+//                //全局异常捕获
+//                .handleException(new ExceptionHandler() {
+//                    @Override
+//                    public void onException(Exception e) {
+//                        e.printStackTrace();
+//                    }
+//                })
+//                //实现httpManager接口的对象
+//                .setHttpManager(new MyUpdateAppHttpUtil())
+//                .build()
+//                .checkNewApp(new MyUpdateCallback());
     }
 
     @Override

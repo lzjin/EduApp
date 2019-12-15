@@ -1,12 +1,16 @@
 package com.danqiu.online.edu.xupdate;
 
 import android.os.Handler;
+import android.util.Log;
 
 import com.danqiu.online.edu.config.MyApplication;
 import com.danqiu.online.edu.retrofit.ApiService;
 import com.danqiu.online.edu.retrofit.RetrofitManager;
+import com.danqiu.online.edu.retrofit.XDownloadProgress;
+import com.danqiu.online.edu.retrofit.XProgressInterceptor;
 import com.danqiu.online.edu.utils.FileUtil;
 import com.danqiu.online.edu.utils.L;
+import com.danqiu.online.edu.utils.SystemUtil;
 import com.xuexiang.xupdate.proxy.IUpdateHttpService;
 
 import java.io.File;
@@ -15,9 +19,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
 import androidx.annotation.NonNull;
+import okhttp3.Call;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import okhttp3.ResponseBody;
+import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
+import retrofit2.converter.gson.GsonConverterFactory;
+import rx.Observable;
 import rx.Observer;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
@@ -97,262 +110,144 @@ public class MyUpdateHttpService implements IUpdateHttpService {
 
     @Override
     public void download(@NonNull String url, @NonNull String path, @NonNull String fileName, @NonNull DownloadCallback callback) {
-        File file = FileUtil.createFile(path, fileName);
+//        File file = FileUtil.createFile(path, fileName);
+//        XDownloadProgress listener=new XDownloadProgress() {
+//            @Override
+//            public void onStartDownload() {
+//                callback.onStart();
+//                Log.i("test", "----------------APP下载开始 ");
+//            }
+//
+//            @Override
+//            public void onProgress(int progress, long total) {
+//                L.i("test", "-----------------onCompleted=" +Thread.currentThread().getName());
+//                Log.i("test", "-----------------APP下载进度: " + progress);
+//                callback.onProgress(progress * 1F /   100F,total);
+//            }
+//
+//            @Override
+//            public void onFinishDownload() {
+//                Log.i("test", "----------------APP下载完成 ");
+//                callback.onSuccess(file);
+//            }
+//
+//            @Override
+//            public void onFail(Throwable throwable) {
+//                callback.onError(throwable);
+//                Log.i("test", "----------------APP下载失败: " +throwable.getMessage());
+//            }
+//        };
+//
+//        httpRxCallback(listener)
+//                .getDownloadApp(url)
+//                .map(new Func1<ResponseBody, InputStream>() {
+//                    @Override
+//                    public InputStream call(ResponseBody responseBody) {
+//                        return responseBody.byteStream();
+//                    }
+//                })
+//                .subscribeOn(Schedulers.io())// 被观察者的实现线程
+//                .unsubscribeOn(Schedulers.io())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .doOnNext(new Action1<InputStream>() {
+//                    @Override
+//                    public void call(InputStream inputStream) {
+//                        try {
+//                            //callback.onStart();
+//                            FileUtil.writeFile(inputStream ,file);
+//                        }
+//                        catch (IOException e) {
+//                            e.printStackTrace();
+//                            try {
+//                                throw new Exception(e.getMessage(), e);
+//                            } catch (Exception e1) {
+//                                e1.printStackTrace();
+//                            }
+//                        }
+//                    }
+//                })
+//                .observeOn(AndroidSchedulers.mainThread())  // 观察者的实现线程
+//                .subscribe(new Subscriber() {
+//                    @Override
+//                    public void onCompleted() {
+//                        L.i("test", "-----------------onCompleted=" +Thread.currentThread().getName());
+//                    }
+//                    @Override
+//                    public void onError(Throwable e) {
+//                        listener.onFail(e);
+//                    }
+//                    @Override
+//                    public void onNext(Object o) {
+//                        listener.onFinishDownload();
+//                    }
+//                });
 
-        httpRxCallback.getDownloadApp(url)
-                .subscribeOn(Schedulers.io())
-                .unsubscribeOn(Schedulers.io())
-                .map(new Func1<ResponseBody, InputStream >() {
 
-                    @Override
-                    public InputStream  call(ResponseBody responseBody) {
-                        total = responseBody.contentLength();
-                        return responseBody.byteStream();
-                    }
-                })
-                .observeOn(AndroidSchedulers.mainThread()) // 用于计算任务
-                .doOnNext(new Action1<InputStream>() {
-                    @Override
-                    public void call(InputStream responseBody) {
-                       // writeFile(inputStream, file);
-                        L.i("test", "-----------------call=" +Thread.currentThread().getName());
-                        InputStream is = null;
-                        FileOutputStream os = null;
-                        byte[] buf = new byte[2048];
-                        int len = 0;
-                        try {
-                            is = responseBody;
-                           // is = responseBody.byteStream();
-                            os = new FileOutputStream(file);
-                           // total = responseBody.contentLength();
-                            sum = 0;
+        OkHttpClient okHttpClient = new OkHttpClient();
+        Request request = new Request.Builder().url(url).build();
+        //异步请求
+        okHttpClient.newCall(request).enqueue(new okhttp3.Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                callback.onError(e);
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+
+                InputStream is = null;
+                FileOutputStream os = null;
+                byte[] buf = new byte[2048];
+                int len = 0;
+
+                File file = FileUtil.createFile(path, fileName);
+                try {
+                    is = response.body().byteStream();
+                    os = new FileOutputStream(file);
+                    total = response.body().contentLength();
+                    sum = 0;
+                    mainHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
                             callback.onStart();
-                            while ((len = is.read(buf)) != -1) {
-                                os.write(buf, 0, len);
-                                sum += len;
-                                int progress = Math.round(sum * 1F / total * 100F);
-                                callback.onProgress(progress * 1F / 100, total);  //下载中更新进度条
-                                L.i("test", "-------------call----onProgress=" +progress);
-                            }
-                            os.flush();
-                            callback.onSuccess(file);   //下载完成
-                            L.i("test", "下载完成,安装启动。" + path + "/" + fileName);
-                        } catch (Exception e) {
-                            callback.onError(e);
-                        } finally {
-                            try {
-                                if (is != null) {
-                                    is.close();
-                                }
-                                if (os != null) {
-                                    os.close();
-                                }
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
                         }
+                    });
+                    while ((len = is.read(buf)) != -1) {
+                        os.write(buf, 0, len);
+                        sum += len;
+                        int progress = Math.round(sum * 1F / total * 100F);
+                        mainHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                callback.onProgress(progress * 1F / 100, total);  //下载中更新进度条
+                                //L.i("test", "-----------------onProgress=" +progress);
+                            }
+                        });
                     }
-                })
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Subscriber<InputStream>() {
-                    @Override
-                    public void onCompleted() {
-                        L.i("test", "-----------------onCompleted=" +Thread.currentThread().getName());
+                    os.flush();
+                    mainHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            callback.onSuccess(file);   //下载完成
+                        }
+                    });
+                    L.i("test", "下载完成,安装启动。" + path + "/" + fileName);
+                } catch (Exception e) {
+                    callback.onError(e);
+                } finally {
+                    try {
+                        if (is != null) {
+                            is.close();
+                        }
+                        if (os != null) {
+                            os.close();
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        callback.onError(e);
-                        L.i("test", "-----------------onError=" +Thread.currentThread().getName());
-                    }
-
-                    @Override
-                    public void onNext(InputStream inputStream) {
-                        L.i("test", "-----------------onNext=" +Thread.currentThread().getName());
-                        callback.onSuccess(file);
-                    }
-                });
-
-
-//        httpRxCallback.getDownloadApp(url)
-//                .subscribeOn(Schedulers.io())
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .subscribe(new Observer<ResponseBody>() {
-//                    @Override
-//                    public void onCompleted() {
-//                        L.i("test", "-----------------onCompleted=" +Thread.currentThread().getName());
-//                    }
-//
-//                    @Override
-//                    public void onError(Throwable e) {
-//                        callback.onError(e);
-//                        L.i("test", "-----------------onError=" +Thread.currentThread().getName());
-//                    }
-//
-//                    @Override
-//                    public void onNext(ResponseBody response) {
-//                        L.i("test", "-----------------onNext=" +Thread.currentThread().getName());
-//                        File file = FileUtil.createFile(path, fileName);
-//                        InputStream is = null;
-//                        FileOutputStream os = null;
-//                        byte[] buf = new byte[2048];
-//                        int len = 0;
-//                        try {
-//                            is = response.byteStream();
-//                            os = new FileOutputStream(file);
-//                            total = response.contentLength();
-//                            sum = 0;
-//                            callback.onStart();
-//                            while ((len = is.read(buf)) != -1) {
-//                                os.write(buf, 0, len);
-//                                sum += len;
-//                                int progress = Math.round(sum * 1F / total * 100F);
-//                                callback.onProgress(progress * 1F / 100, total);  //下载中更新进度条
-//                                //L.i("test", "-----------------onProgress=" +progress);
-//                            }
-//                            os.flush();
-//                            callback.onSuccess(file);   //下载完成
-//                            L.i("test", "下载完成,安装启动。" + path + "/" + fileName);
-//                        } catch (Exception e) {
-//                            callback.onError(e);
-//                        } finally {
-//                            try {
-//                                if (is != null) {
-//                                    is.close();
-//                                }
-//                                if (os != null) {
-//                                    os.close();
-//                                }
-//                            } catch (IOException e) {
-//                                e.printStackTrace();
-//                            }
-//                        }
-//                    }
-//                });
-
-//        httpRxCallback.getDownloadApp(url)
-//                .subscribeOn(Schedulers.io())
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .subscribe(new Observer<ResponseBody>() {
-//                    @Override
-//                    public void onCompleted() {
-//                        L.i("test", "-----------------onCompleted=" +Thread.currentThread().getName());
-//                    }
-//
-//                    @Override
-//                    public void onError(Throwable e) {
-//                        callback.onError(e);
-//                        L.i("test", "-----------------onError=" +Thread.currentThread().getName());
-//                    }
-//
-//                    @Override
-//                    public void onNext(ResponseBody response) {
-//                        L.i("test", "-----------------onNext=" +Thread.currentThread().getName());
-//                        File file = FileUtil.createFile(path, fileName);
-//                        InputStream is = null;
-//                        FileOutputStream os = null;
-//                        byte[] buf = new byte[2048];
-//                        int len = 0;
-//                        try {
-//                            is = response.byteStream();
-//                            os = new FileOutputStream(file);
-//                            total = response.contentLength();
-//                            sum = 0;
-//                            callback.onStart();
-//                            while ((len = is.read(buf)) != -1) {
-//                                os.write(buf, 0, len);
-//                                sum += len;
-//                                int progress = Math.round(sum * 1F / total * 100F);
-//                                callback.onProgress(progress * 1F / 100, total);  //下载中更新进度条
-//                                //L.i("test", "-----------------onProgress=" +progress);
-//                            }
-//                            os.flush();
-//                            callback.onSuccess(file);   //下载完成
-//                            L.i("test", "下载完成,安装启动。" + path + "/" + fileName);
-//                        } catch (Exception e) {
-//                            callback.onError(e);
-//                        } finally {
-//                            try {
-//                                if (is != null) {
-//                                    is.close();
-//                                }
-//                                if (os != null) {
-//                                    os.close();
-//                                }
-//                            } catch (IOException e) {
-//                                e.printStackTrace();
-//                            }
-//                        }
-//                    }
-//                });
-
-
-
-//        OkHttpClient okHttpClient = new OkHttpClient();
-//        Request request = new Request.Builder().url(url).build();
-//        //异步请求
-//        okHttpClient.newCall(request).enqueue(new okhttp3.Callback() {
-//            @Override
-//            public void onFailure(Call call, IOException e) {
-//                callback.onError(e);
-//            }
-//
-//            @Override
-//            public void onResponse(Call call, Response response) throws IOException {
-//
-//                InputStream is = null;
-//                FileOutputStream os = null;
-//                byte[] buf = new byte[2048];
-//                int len = 0;
-//
-//                File file = FileUtil.createFile(path, fileName);
-//                try {
-//                    is = response.body().byteStream();
-//                    os = new FileOutputStream(file);
-//                    total = response.body().contentLength();
-//                    sum = 0;
-//                    mainHandler.post(new Runnable() {
-//                        @Override
-//                        public void run() {
-//                            callback.onStart();
-//                        }
-//                    });
-//                    while ((len = is.read(buf)) != -1) {
-//                        os.write(buf, 0, len);
-//                        sum += len;
-//                        int progress = Math.round(sum * 1F / total * 100F);
-//                        mainHandler.post(new Runnable() {
-//                            @Override
-//                            public void run() {
-//                                callback.onProgress(progress * 1F / 100, total);  //下载中更新进度条
-//                                //L.i("test", "-----------------onProgress=" +progress);
-//                            }
-//                        });
-//                    }
-//                    os.flush();
-//                    mainHandler.post(new Runnable() {
-//                        @Override
-//                        public void run() {
-//                            callback.onSuccess(file);   //下载完成
-//                        }
-//                    });
-//                    L.i("test", "下载完成,安装启动。" + path + "/" + fileName);
-//                } catch (Exception e) {
-//                    callback.onError(e);
-//                } finally {
-//                    try {
-//                        if (is != null) {
-//                            is.close();
-//                        }
-//                        if (os != null) {
-//                            os.close();
-//                        }
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//            }
-//        });
+                }
+            }
+        });
 
 //        OkHttpUtils.get()
 //                .url(url)
@@ -395,11 +290,21 @@ public class MyUpdateHttpService implements IUpdateHttpService {
 
 
 
-    private Map<String, String> transform(Map<String, Object> params) {
-        Map<String, String> map = new TreeMap<>();
-        for (Map.Entry<String, Object> entry : params.entrySet()) {
-            map.put(entry.getKey(), entry.getValue().toString());
-        }
-        return map;
+    public ApiService httpRxCallback (XDownloadProgress progressListener) {
+        OkHttpClient.Builder  okHttpClient = new OkHttpClient.Builder();
+        okHttpClient.connectTimeout(5, TimeUnit.SECONDS);
+        okHttpClient.readTimeout(5, TimeUnit.SECONDS);
+        okHttpClient.writeTimeout(5, TimeUnit.SECONDS);
+        okHttpClient.addInterceptor(new XProgressInterceptor(progressListener));//自定义下载拦截器
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(ApiService.Base_URL)
+                .client(okHttpClient.build())
+                .addConverterFactory(GsonConverterFactory.create())
+                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+                .build();
+        //apiService = retrofit.create(ApiService.class);
+        return retrofit.create(ApiService.class);
     }
+
 }

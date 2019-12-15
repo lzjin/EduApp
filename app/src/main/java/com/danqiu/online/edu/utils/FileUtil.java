@@ -57,7 +57,7 @@ public class FileUtil {
         long ltest = 0;
         if (!file.getParentFile().exists())
             file.getParentFile().mkdirs();
-        if (file != null && file.exists()){
+        if (file.exists()){
             ltest = file.length();
         }
         if (is != null){

@@ -1,7 +1,6 @@
 package com.danqiu.online.edu.xupdate;
 
-import android.util.Log;
-
+import com.danqiu.online.edu.utils.L;
 import com.google.gson.Gson;
 import com.xuexiang.xupdate.entity.DownloadEntity;
 import com.xuexiang.xupdate.entity.UpdateEntity;
@@ -14,7 +13,7 @@ import com.xuexiang.xupdate.proxy.IUpdateParser;
 public class MyUpdateParser implements IUpdateParser {
     @Override
     public UpdateEntity parseJson(String jsonData) throws Exception {
-        Log.i("test","---------解析版本json="+jsonData);
+        L.e("test","---------解析版本json="+jsonData);
         Gson gson = new Gson();
         MyResult result = gson.fromJson(jsonData, MyResult.class);
         if (result != null) {

@@ -17,7 +17,7 @@ import java.io.RandomAccessFile;
  * Describe ：注释
  */
 public class FileUtil {
-    private static String TAG="test";
+    private static String TAG = "test";
 
     /**
      * 创建主目录
@@ -31,24 +31,26 @@ public class FileUtil {
     }
 
     /**
-     *  创建文件
+     * 创建文件
+     *
      * @param filePath
-     * @param name
+     * @param fileName
      * @return
      */
-    public static File createFile(String filePath,String name) {
-        File file=new File(filePath);
-        if(!file.exists()) {
+    public static File createFile(String filePath, String fileName) {
+        File file = new File(filePath);
+        if (!file.exists()) {
             file.mkdirs();
-            L.i(TAG, "--------------------下载目录,创建"+file.getAbsolutePath());
+            L.i(TAG, "--------------------下载目录,创建" + file.getAbsolutePath());
         }
-        file=new File(filePath+"/"+name);
+        file = new File(filePath + "/" + fileName);
         return file;
     }
 
     /**
      * 写入文件
      * 断点续传
+     *
      * @param is
      * @param file
      */
@@ -57,21 +59,25 @@ public class FileUtil {
         long ltest = 0;
         if (!file.getParentFile().exists())
             file.getParentFile().mkdirs();
-        if (file.exists()){
+        if (file != null && file.exists()) {
             ltest = file.length();
         }
-        if (is != null){
-            savedFile = new RandomAccessFile(file , "rw");
+        if (is != null) {
+            savedFile = new RandomAccessFile(file, "rw");
             savedFile.seek(ltest);
             byte[] buffer = new byte[1024 * 128];
             int len = -1;
+            L.e("test", "----------1------isLen="+len);
             while ((len = is.read(buffer)) != -1) {
                 savedFile.write(buffer, 0, len);
+                L.e("test", "--------2--------isLen="+len);
             }
+            L.e("test", "-----------3----isLen="+len);
             is.close();
-        }else {
+        } else {
+            L.e("test", "----------------isxxx");
             try {
-                throw new Exception("下载失败" , new Throwable("检查网网咯"));
+                throw new Exception("下载失败", new Throwable("检查网网咯"));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -79,8 +85,9 @@ public class FileUtil {
     }
 
     /**
-     *   复制
-     *   读取路径  写入路径
+     * 复制
+     * 读取路径  写入路径
+     *
      * @param isPath
      * @param osPath
      */
@@ -109,8 +116,37 @@ public class FileUtil {
         }
     }
 
+    public static void ioWriteFile(InputStream is,File file) {
+
+        FileOutputStream os = null;
+        byte[] buf = new byte[2048];
+        int len = 0;
+        try {
+            os = new FileOutputStream(file);
+            while ((len = is.read(buf)) != -1) {
+                os.write(buf, 0, len);
+            }
+            os.flush();
+        } catch (Exception e) {
+        }
+        finally {
+            try {
+                if (is != null) {
+                    is.close();
+                }
+                if (os != null) {
+                    os.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
     /**
-     *  是否存在文件
+     * 是否存在文件
+     *
      * @param path
      * @return
      */
@@ -124,7 +160,8 @@ public class FileUtil {
     }
 
     /**
-     *  删除当个文件
+     * 删除当个文件
+     *
      * @param path
      * @return
      */
@@ -133,14 +170,14 @@ public class FileUtil {
         // 如果文件路径所对应的文件存在，并且是一个文件，则直接删除
         if (file.exists() && file.isFile()) {
             if (file.delete()) {
-                L.i(TAG,"删除单个文件" + path + "成功！");
+                L.i(TAG, "删除单个文件" + path + "成功！");
                 return true;
             } else {
-                L.i(TAG,"删除单个文件" + path + "失败！");
+                L.i(TAG, "删除单个文件" + path + "失败！");
                 return false;
             }
         } else {
-            L.i(TAG,"删除单个文件失败：" + path + "不存在！");
+            L.i(TAG, "删除单个文件失败：" + path + "不存在！");
             return true;
         }
     }
@@ -158,7 +195,7 @@ public class FileUtil {
         File dirFile = new File(dir);
         // 如果dir对应的文件不存在，或者不是一个目录，则退出
         if ((!dirFile.exists()) || (!dirFile.isDirectory())) {
-            L.i(TAG,"删除目录失败：" + dir + "不存在！");
+            L.i(TAG, "删除目录失败：" + dir + "不存在！");
             return false;
         }
         //boolean flag = true;
@@ -177,7 +214,7 @@ public class FileUtil {
         }
         // 删除当前目录
         if (dirFile.delete()) {
-            L.i(TAG,"删除目录" + dir + "成功！");
+            L.i(TAG, "删除目录" + dir + "成功！");
             return true;
         } else {
             return false;

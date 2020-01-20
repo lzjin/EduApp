@@ -39,14 +39,14 @@ public class L {
 
     public static void d(String tag, String msg) {
         if (isShowLogo){
-            Log.i(TAG+tag,msg);
+            Log.d(TAG+tag,msg);
         }
 
     }
 
     public static void e(String tag, String msg) {
         if (isShowLogo){
-            Log.i(TAG+tag,msg);
+            Log.e(TAG+tag,msg);
         }
 
     }

@@ -1,6 +1,6 @@
 package com.danqiu.online.edu.retrofit;
 
-import android.util.Log;
+import com.danqiu.online.edu.utils.L;
 
 import java.io.IOException;
 
@@ -54,8 +54,8 @@ public class XProgressResponseBody extends ResponseBody {
                 long bytesRead = super.read(sink, byteCount);
                 // read() returns the number of bytes read, or -1 if this source is exhausted.
                 totalBytesRead += bytesRead != -1 ? bytesRead : 0;
-                Log.i("yrst", "read: " + (int) (totalBytesRead * 100 / responseBody.contentLength()));
-                if (null != downloadListener) {
+                L.e("test", "-----read: " + (int) (totalBytesRead * 100 / responseBody.contentLength()));
+                if (downloadListener!=null) {
                     if (bytesRead != -1) {
                         downloadListener.onProgress((int) (totalBytesRead * 100 / responseBody.contentLength()),responseBody.contentLength());
                     }

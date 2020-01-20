@@ -3,17 +3,24 @@ package com.danqiu.online.edu.ui.activity;
 import android.Manifest;
 import android.content.Context;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
 import com.amap.api.maps.MapView;
 import com.danqiu.online.edu.R;
 import com.danqiu.online.edu.base.BaseActivity;
+import com.danqiu.online.edu.dialog.BaseDialog;
+import com.danqiu.online.edu.dialog.InputDialog;
+import com.danqiu.online.edu.dialog.MessageDialog;
+import com.danqiu.online.edu.dialog.ToastDialog;
+import com.danqiu.online.edu.dialog.WaitDialog;
 import com.danqiu.online.edu.mvp.contract.TestContract;
 import com.danqiu.online.edu.mvp.presenter.TestPresenter;
 import com.danqiu.online.edu.utils.L;
 import com.danqiu.online.edu.utils.ToastUtil;
 import com.danqiu.online.edu.xupdate.MyUpdateParser;
+import com.hjq.toast.ToastUtils;
 import com.xuexiang.xupdate.XUpdate;
 
 import java.util.List;
@@ -39,6 +46,18 @@ public class TestActivity extends BaseActivity<TestPresenter> implements TestCon
     String mUpdateUrl = "http://www.danqiuedu.com/uapi/api/pub/sysConfig/getVal";
     @BindView(R.id.map)
     MapView mMapView;
+    @BindView(R.id.btn_dialog_succeed_toast)
+    Button btnDialogSucceedToast;
+    @BindView(R.id.btn_dialog_fail_toast)
+    Button btnDialogFailToast;
+    @BindView(R.id.btn_dialog_warn_toast)
+    Button btnDialogWarnToast;
+    @BindView(R.id.btn_dialog_wait)
+    Button btnDialogWait;
+    @BindView(R.id.btn_dialog_message)
+    Button btnDialogMessage;
+    @BindView(R.id.btn_dialog_input)
+    Button btnDialogInput;
 
     @Override
     protected TestPresenter _createPresenter() {
@@ -60,9 +79,102 @@ public class TestActivity extends BaseActivity<TestPresenter> implements TestCon
     }
 
 
-    @OnClick(R.id.btn_login)
-    public void onViewClicked() {
-        onLogin();
+    @OnClick({R.id.btn_login,R.id.btn_dialog_succeed_toast, R.id.btn_dialog_fail_toast,
+            R.id.btn_dialog_warn_toast, R.id.btn_dialog_wait, R.id.btn_dialog_message, R.id.btn_dialog_input})
+    public void onViewClicked(View view) {
+        switch (view.getId()) {
+            case R.id.btn_dialog_succeed_toast:
+                // 成功对话框
+                new ToastDialog.Builder(this)
+                        .setType(ToastDialog.Type.FINISH)
+                        .setMessage("完成")
+                        .show();
+                break;
+            case R.id.btn_dialog_fail_toast:
+                // 失败对话框
+                new ToastDialog.Builder(this)
+                        .setType(ToastDialog.Type.ERROR)
+                        .setMessage("错误")
+                        .show();
+                break;
+            case R.id.btn_dialog_warn_toast:
+                // 警告对话框
+                new ToastDialog.Builder(this)
+                        .setType(ToastDialog.Type.WARN)
+                        .setMessage("警告")
+                        .show();
+                break;
+            case R.id.btn_dialog_wait:
+                // 等待对话框
+                final BaseDialog dialog = new WaitDialog.Builder(this)
+                        // 消息文本可以不用填写
+                        .setMessage(getString(R.string.common_loading))
+                        .show();
+                dialog.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        dialog.dismiss();
+                    }
+                }, 2000);
+                break;
+            case R.id.btn_dialog_message:
+                new MessageDialog.Builder(this)
+                        // 标题可以不用填写
+                        .setTitle("我是标题")
+                        // 内容必须要填写
+                        .setMessage("我是内容")
+                        // 确定按钮文本
+                        .setConfirm(getString(R.string.common_confirm))
+                        // 设置 null 表示不显示取消按钮
+                        .setCancel(getString(R.string.common_cancel))
+                        // 设置点击按钮后不关闭对话框
+                        //.setAutoDismiss(false)
+                        .setListener(new MessageDialog.OnListener() {
+
+                            @Override
+                            public void onConfirm(BaseDialog dialog) {
+                                ToastUtils.show("确定了");
+                            }
+
+                            @Override
+                            public void onCancel(BaseDialog dialog) {
+                                ToastUtils.show("取消");
+                            }
+                        })
+                        .show();
+                break;
+            case R.id.btn_dialog_input:
+                // 输入对话框
+                new InputDialog.Builder(this)
+                        // 标题可以不用填写
+                        .setTitle("我是标题")
+                        // 内容可以不用填写
+                        .setContent("我是内容")
+                        // 提示可以不用填写
+                        .setHint("我是提示")
+                        // 确定按钮文本
+                        .setConfirm(getString(R.string.common_confirm))
+                        // 设置 null 表示不显示取消按钮
+                        .setCancel(getString(R.string.common_cancel))
+                        //.setAutoDismiss(false) // 设置点击按钮后不关闭对话框
+                        .setListener(new InputDialog.OnListener() {
+
+                            @Override
+                            public void onConfirm(BaseDialog dialog, String content) {
+                                ToastUtils.show("确定了"+content);
+                            }
+
+                            @Override
+                            public void onCancel(BaseDialog dialog) {
+                                ToastUtils.show("取消了");
+                            }
+                        })
+                        .show();
+                break;
+            case R.id.btn_login:
+                onLogin();
+                break;
+        }
     }
 
     public void onLogin() {
@@ -72,6 +184,7 @@ public class TestActivity extends BaseActivity<TestPresenter> implements TestCon
         getAppVersion2();
         getAppVersion();
     }
+
     /**
      * app更新
      */
@@ -84,6 +197,7 @@ public class TestActivity extends BaseActivity<TestPresenter> implements TestCon
                 .supportBackgroundUpdate(true)
                 .update();
     }
+
     /**
      * app更新
      */
@@ -185,6 +299,7 @@ public class TestActivity extends BaseActivity<TestPresenter> implements TestCon
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this);
     }
+
 
 
 }

@@ -11,6 +11,7 @@ import com.danqiu.online.edu.widget.MyRefreshFooter;
 import com.danqiu.online.edu.widget.MyRefreshHeader;
 import com.danqiu.online.edu.xupdate.MyUpdateHttpService;
 import com.facebook.drawee.backends.pipeline.Fresco;
+import com.hjq.toast.ToastUtils;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.scwang.smartrefresh.layout.api.DefaultRefreshFooterCreator;
 import com.scwang.smartrefresh.layout.api.DefaultRefreshHeaderCreator;
@@ -59,7 +60,7 @@ public class MyApplication extends Application {
         app = this;
         //配置缓存的初始化
         Fresco.initialize(this, ImageLoaderConfig.getImagePipelineConfig(this));
-
+        ToastUtils.init(this);
         initXUpdate();
     }
 

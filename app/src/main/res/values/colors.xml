@@ -3,4 +3,21 @@
     <color name="colorPrimary">#008577</color>
     <color name="colorPrimaryDark">#00574B</color>
     <color name="colorAccent">#D81B60</color>
+
+
+    <!-- 按钮按压时的颜色 -->
+    <color name="colorButtonPressed">#1976D2</color>
+    <!-- 按钮禁用时的颜色 -->
+    <color name="colorButtonDisable">#BBBBBB</color>
+    <!-- 分割线的颜色 -->
+    <color name="colorLine">#ECECEC</color>
+
+    <!-- 对话框确认按钮文本颜色 -->
+    <color name="colorConfirm">#007AFF</color>
+    <!-- 对话框取消按钮文本颜色 -->
+    <color name="colorCancel">#F44336</color>
+    <color name="black5">#0D000000</color>
+    <!-- 透明色 -->
+    <color name="transparent">#00000000</color>
+
 </resources>

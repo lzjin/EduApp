@@ -68,7 +68,12 @@ public abstract  class BaseActivity <P extends IBasePresenter> extends AppCompat
      *   白底黑字
      */
     protected void setStatusBar() {
-        ImmersionBar.with(this).statusBarDarkFont(true, 0.2f).fitsSystemWindows(true).init();
+       ImmersionBar.with(this)
+                // 默认状态栏字体颜色为黑色
+                .statusBarDarkFont(true)
+                // 解决软键盘与底部输入框冲突问题，默认为false，还有一个重载方法，可以指定软键盘mode
+                .keyboardEnable(true);
+       // ImmersionBar.with(this).statusBarDarkFont(true, 0.2f).fitsSystemWindows(true).init();
     }
     /**
      * 初始化mPresenter

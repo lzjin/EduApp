@@ -85,6 +85,8 @@ dependencies {
     implementation 'com.gyf.immersionbar:immersionbar:3.0.0'
     // 状态栏 fragment快速实现（可选）
     implementation 'com.gyf.immersionbar:immersionbar-components:3.0.0'
+    //toast
+    implementation 'com.hjq:toast:8.0'
 
     //implementation 'com.shuyu:gsyVideoPlayer-java:7.1.1'
     //更多ijk的编码支持

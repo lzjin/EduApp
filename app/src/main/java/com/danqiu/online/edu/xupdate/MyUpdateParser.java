@@ -4,6 +4,7 @@ import com.danqiu.online.edu.utils.L;
 import com.google.gson.Gson;
 import com.xuexiang.xupdate.entity.DownloadEntity;
 import com.xuexiang.xupdate.entity.UpdateEntity;
+import com.xuexiang.xupdate.listener.IUpdateParseCallback;
 import com.xuexiang.xupdate.proxy.IUpdateParser;
 
 /**
@@ -13,32 +14,18 @@ import com.xuexiang.xupdate.proxy.IUpdateParser;
 public class MyUpdateParser implements IUpdateParser {
     @Override
     public UpdateEntity parseJson(String jsonData) throws Exception {
-        L.e("test","---------解析版本json="+jsonData);
+        L.e("test","-------解析版本json="+jsonData);
         Gson gson = new Gson();
         MyResult result = gson.fromJson(jsonData, MyResult.class);
         if (result != null) {
-
-//            UpdateEntity  updateEntity=new UpdateEntity();
-//            updateEntity.setHasUpdate(result.getData().isHasUpdate())//是否有新版本
-//                    .setIsSilent(result.getData().isIsSilent())//是否静默下载
-//                    .setIsAutoInstall(result.getData().isIsAutoInstall())//是否下载完成后自动安装
-//                    .setForce(result.getData().isHasUpdate())  //是否强制安装
-//                    .setIsIgnorable(result.getData().isIgnorable()) //是否可忽略该版本
-//                    .setVersionCode(result.getData().getVersionCode())
-//                    .setVersionName(result.getData().getVersionName())
-//                    .setUpdateContent(result.getData().getUpdateContent())
-//                    .setDownloadUrl(result.getData().getApkUrl())
-//                    .setSize(result.getData().getApkSize());
-
-
             DownloadEntity entity=new DownloadEntity();
             entity.setShowNotification(true);
             entity.setDownloadUrl(result.getData().getAPPDownAddress());
             entity.setMd5("");
             UpdateEntity  updateEntity=new UpdateEntity();
-            updateEntity.setHasUpdate(true)//是否有新版本
-                    .setForce(false)  //是否强制安装
-                    .setIsAutoInstall(true)//是否下载后安装
+            updateEntity.setHasUpdate(true)//是否有新版本,实际根据版本号判断
+                    .setForce(true)  //是否强制安装
+                    .setIsAutoInstall(true)//下载后自动安装
                     .setIsSilent(false)//是否静默下载
                     .setIsIgnorable(false) //是否可忽略该版本
                     .setVersionCode(2)
@@ -53,6 +40,16 @@ public class MyUpdateParser implements IUpdateParser {
         }
 
         return null;
+    }
+
+    @Override
+    public void parseJson(String json, IUpdateParseCallback callback) throws Exception {
+
+    }
+
+    @Override
+    public boolean isAsyncParser() {
+        return false;
     }
 
 }

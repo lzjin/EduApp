@@ -58,6 +58,8 @@ public class TestActivity extends BaseActivity<TestPresenter> implements TestCon
     Button btnDialogMessage;
     @BindView(R.id.btn_dialog_input)
     Button btnDialogInput;
+    @BindView(R.id.btn_dialog_update)
+    Button btnUpdate;
 
     @Override
     protected TestPresenter _createPresenter() {
@@ -80,9 +82,13 @@ public class TestActivity extends BaseActivity<TestPresenter> implements TestCon
 
 
     @OnClick({R.id.btn_login,R.id.btn_dialog_succeed_toast, R.id.btn_dialog_fail_toast,
-            R.id.btn_dialog_warn_toast, R.id.btn_dialog_wait, R.id.btn_dialog_message, R.id.btn_dialog_input})
+            R.id.btn_dialog_warn_toast, R.id.btn_dialog_wait, R.id.btn_dialog_message,
+            R.id.btn_dialog_update,R.id.btn_dialog_input})
     public void onViewClicked(View view) {
         switch (view.getId()) {
+            case R.id.btn_dialog_update:
+                getAppVersion();
+                break;
             case R.id.btn_dialog_succeed_toast:
                 // 成功对话框
                 new ToastDialog.Builder(this)
@@ -179,52 +185,19 @@ public class TestActivity extends BaseActivity<TestPresenter> implements TestCon
 
     public void onLogin() {
         // 登录操作
-        // mPresenter.login(edtUser.getText().toString().trim(), edtPass.getText().toString().trim());
-
-        getAppVersion2();
-        getAppVersion();
-    }
-
-    /**
-     * app更新
-     */
-    private void getAppVersion2() {
-
-        XUpdate.newBuild(activity)
-                .isGet(true)
-                .updateUrl(mUpdateUrl)
-                .updateParser(new MyUpdateParser()) //设置自定义的版本更新解析器
-                .supportBackgroundUpdate(true)
-                .update();
+        mPresenter.login(edtUser.getText().toString().trim(), edtPass.getText().toString().trim());
     }
 
     /**
      * app更新
      */
     private void getAppVersion() {
-
-//        Map<String, String> map = new HashMap<>();
-//        map.put("paramKey", "APPVersion,APPDownAddress");
-//
-//        new UpdateAppManager
-//                .Builder()
-//                .setActivity(this)
-//                .setPost(false)
-//                // .setAppKey()
-//                .setParams(map)
-//                //更新地址
-//                .setUpdateUrl(ApiService.updateApp)
-//                //全局异常捕获
-//                .handleException(new ExceptionHandler() {
-//                    @Override
-//                    public void onException(Exception e) {
-//                        e.printStackTrace();
-//                    }
-//                })
-//                //实现httpManager接口的对象
-//                .setHttpManager(new MyUpdateAppHttpUtil())
-//                .build()
-//                .checkNewApp(new MyUpdateCallback());
+        XUpdate.newBuild(activity)
+                .isGet(true)
+                .updateUrl(mUpdateUrl)
+                .updateParser(new MyUpdateParser()) //设置自定义的版本更新解析器
+                .supportBackgroundUpdate(true)
+                .update();
     }
 
     @Override

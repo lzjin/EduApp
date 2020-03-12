@@ -92,11 +92,8 @@ dependencies {
     //更多ijk的编码支持
    // implementation 'com.shuyu:gsyVideoPlayer-ex_so:7.1.1'
     //版本更新
-    //implementation 'com.qianwen:update-app:3.5.2
-    //版本更新 2
-     implementation 'com.github.xuexiangjys:XUpdate:1.1.1'
-    //版本更新 网络请求的实现二
-    //implementation 'com.github.xuexiangjys:XHttp2:1.0.2'
+     implementation 'com.github.xuexiangjys:XUpdate:1.1.4'
+    //版本更新+网络请求utils
     implementation 'com.qianwen:okhttp-utils:3.8.0'
 
 }

@@ -7,27 +7,27 @@ import com.danqiu.online.edu.retrofit.ApiService;
 import com.danqiu.online.edu.retrofit.RetrofitManager;
 import com.danqiu.online.edu.retrofit.XDownloadProgress;
 import com.danqiu.online.edu.retrofit.XProgressInterceptor;
-import com.danqiu.online.edu.utils.FileUtil;
 import com.danqiu.online.edu.utils.L;
 import com.xuexiang.xupdate.proxy.IUpdateHttpService;
+import com.zhy.http.okhttp.OkHttpUtils;
+import com.zhy.http.okhttp.callback.FileCallBack;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import androidx.annotation.NonNull;
+import okhttp3.Call;
 import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import okhttp3.ResponseBody;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 import rx.Observer;
-import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
 /**
@@ -102,6 +102,35 @@ public class MyUpdateHttpService implements IUpdateHttpService {
 
     @Override
     public void download(@NonNull String url, @NonNull String path, @NonNull String fileName, @NonNull DownloadCallback callback) {
+
+        // 方式一 网络库
+        OkHttpUtils.get()
+                .url(url)
+                .build()
+                .execute(new FileCallBack(path, fileName) {
+                    @Override
+                    public void inProgress(float progress, long total, int id) {
+                        callback.onProgress(progress, total);
+                        L.i("test", "-----------------APP下载进度: progress=" + progress+"-------------total="+total);
+                    }
+
+                    @Override
+                    public void onError(Call call, Response response, Exception e, int id) {
+                        callback.onError(e);
+                    }
+
+                    @Override
+                    public void onResponse(File response, int id) {
+                        callback.onSuccess(response);
+                    }
+
+                    @Override
+                    public void onBefore(Request request, int id) {
+                        super.onBefore(request, id);
+                        callback.onStart();
+                    }
+                });
+
 //方法四
 //                httpRxCallback.getDownloadApp(url)
 //                .subscribeOn(Schedulers.io())
@@ -174,91 +203,94 @@ public class MyUpdateHttpService implements IUpdateHttpService {
 
 
 // 方式三 自定义进度条
-        File file = FileUtil.createFile(path, fileName);
-        XDownloadProgress listener=new XDownloadProgress() {
-            @Override
-            public void onStartDownload() {
-                callback.onStart();
-                L.e("test", "----------------APP下载开始 ");
-            }
 
-            @Override
-            public void onProgress(int progress, long total) {
-                L.e("test", "-----------------onCompleted=" +Thread.currentThread().getName());
-                L.e("test", "-----------------APP下载进度: " + progress);
-                mainHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        callback.onProgress(progress * 1F / 100F,total);
-                    }
-                });
 
-            }
-
-            @Override
-            public void onFinishDownload() {
-                L.e("test", "----------------APP下载完成 ");
-                callback.onSuccess(file);
-            }
-
-            @Override
-            public void onFail(Throwable throwable) {
-                callback.onError(throwable);
-                L.e("test", "----------------APP下载失败: " +throwable.getMessage());
-            }
-        };
-
-        httpRxCallback(listener)
-                .getDownloadApp(url)
-                .unsubscribeOn(Schedulers.io())
-                .map(new Func1<ResponseBody, InputStream>() {
-                    @Override
-                    public InputStream call(ResponseBody responseBody) {
-                        return responseBody.byteStream();
-                    }
-                })
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnNext(new Action1<InputStream>() {
-                    @Override
-                    public void call(InputStream inputStream) {
-                        L.e("test", "----------------inputStream ");
-                       // FileUtil.ioWriteFile(inputStream,file);
-                        try {
-                            mainHandler.post(new Runnable() {
-                             @Override
-                             public void run() {
-                                callback.onStart();
-                             }
-                            });
-                           // callback.onStart();
-                            FileUtil.writeFile(inputStream ,file);
-                        }
-                        catch (IOException e) {
-                            e.printStackTrace();
-                            L.e("test", "----------------inputStream--IOException ");
-                        }
-                    }
-                })
-                .subscribeOn(Schedulers.io())  // 被观察者的实现线程
-                .unsubscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())  // 观察者的实现线程
-                .subscribe(new Subscriber() {
-                    @Override
-                    public void onCompleted() {
-                        L.e("test", "-----------------onCompleted=" +Thread.currentThread().getName());
-                        if(file.exists()){
-                           listener.onFinishDownload();
-                        }
-                    }
-                    @Override
-                    public void onError(Throwable e) {
-                        L.e("test", "-------x--------onError");
-                        listener.onFail(e);
-                    }
-                    @Override
-                    public void onNext(Object o) {
-                    }
-                });
+//方法3
+//        File file = FileUtil.createFile(path, fileName);
+//        XDownloadProgress listener=new XDownloadProgress() {
+//            @Override
+//            public void onStartDownload() {
+//                callback.onStart();
+//                L.e("test", "----------------APP下载开始 ");
+//            }
+//
+//            @Override
+//            public void onProgress(int progress, long total) {
+//                L.e("test", "-----------------onCompleted=" +Thread.currentThread().getName());
+//                L.e("test", "-----------------APP下载进度: " + progress);
+//                mainHandler.post(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        callback.onProgress(progress * 1F / 100F,total);
+//                    }
+//                });
+//
+//            }
+//
+//            @Override
+//            public void onFinishDownload() {
+//                L.e("test", "----------------APP下载完成 ");
+//                callback.onSuccess(file);
+//            }
+//
+//            @Override
+//            public void onFail(Throwable throwable) {
+//                callback.onError(throwable);
+//                L.e("test", "----------------APP下载失败: " +throwable.getMessage());
+//            }
+//        };
+//
+//        httpRxCallback(listener)
+//                .getDownloadApp(url)
+//                .unsubscribeOn(Schedulers.io())
+//                .map(new Func1<ResponseBody, InputStream>() {
+//                    @Override
+//                    public InputStream call(ResponseBody responseBody) {
+//                        return responseBody.byteStream();
+//                    }
+//                })
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .doOnNext(new Action1<InputStream>() {
+//                    @Override
+//                    public void call(InputStream inputStream) {
+//                        L.e("test", "----------------inputStream ");
+//                       // FileUtil.ioWriteFile(inputStream,file);
+//                        try {
+//                            mainHandler.post(new Runnable() {
+//                             @Override
+//                             public void run() {
+//                                callback.onStart();
+//                             }
+//                            });
+//                           // callback.onStart();
+//                            FileUtil.writeFile(inputStream ,file);
+//                        }
+//                        catch (IOException e) {
+//                            e.printStackTrace();
+//                            L.e("test", "----------------inputStream--IOException ");
+//                        }
+//                    }
+//                })
+//                .subscribeOn(Schedulers.io())  // 被观察者的实现线程
+//                .unsubscribeOn(Schedulers.io())
+//                .observeOn(AndroidSchedulers.mainThread())  // 观察者的实现线程
+//                .subscribe(new Subscriber() {
+//                    @Override
+//                    public void onCompleted() {
+//                        L.e("test", "-----------------onCompleted=" +Thread.currentThread().getName());
+//                        if(file.exists()){
+//                           listener.onFinishDownload();
+//                        }
+//                    }
+//                    @Override
+//                    public void onError(Throwable e) {
+//                        L.e("test", "-------x--------onError");
+//                        listener.onFail(e);
+//                    }
+//                    @Override
+//                    public void onNext(Object o) {
+//                    }
+//                });
 
 // 方式二 okhttp
 //        OkHttpClient okHttpClient = new OkHttpClient();
@@ -327,37 +359,7 @@ public class MyUpdateHttpService implements IUpdateHttpService {
 //            }
 //        });
 
-// 方式一 网络库
-//        OkHttpUtils.get()
-//                .url(url)
-//                .build()
-//                .execute(new FileCallBack(path, fileName) {
-//                    @Override
-//                    public void inProgress(float progress, long total, int id) {
-//                        L.i("test", "-----------------inProgress" +Thread.currentThread().getName());
-//                        callback.onProgress(progress, total);
-//                        L.i("test", "-----------------APP下载进度: progress=" + progress+"-------------total="+total);
-//                    }
-//
-//                    @Override
-//                    public void onError(Call call, Response response, Exception e, int id) {
-//                        L.i("test", "-----------------onError" +Thread.currentThread().getName());
-//                        callback.onError(e);
-//                    }
-//
-//                    @Override
-//                    public void onResponse(File response, int id) {
-//                        L.i("test", "-----------------onResponse" +Thread.currentThread().getName());
-//                        callback.onSuccess(response);
-//                    }
-//
-//                    @Override
-//                    public void onBefore(Request request, int id) {
-//                        L.i("test", "-----------------onBefore" +Thread.currentThread().getName());
-//                        super.onBefore(request, id);
-//                        callback.onStart();
-//                    }
-//                });
+
 
     }
 

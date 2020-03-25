@@ -65,10 +65,8 @@ dependencies {
     implementation 'com.facebook.fresco:webpsupport:0.14.1'
     // 支持WebP动图
     implementation 'com.facebook.fresco:animated-webp:0.14.1'
-
     //通讯eventbus
     implementation 'org.greenrobot:eventbus:3.0.0'
-
     //权限
     implementation 'pub.devrel:easypermissions:3.0.0'
     //注解

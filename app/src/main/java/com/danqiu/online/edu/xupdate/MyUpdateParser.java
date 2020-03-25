@@ -24,7 +24,7 @@ public class MyUpdateParser implements IUpdateParser {
             entity.setMd5("");
             UpdateEntity  updateEntity=new UpdateEntity();
             updateEntity.setHasUpdate(true)//是否有新版本,实际根据版本号判断
-                    .setForce(true)  //是否强制安装
+                    .setForce(false)  //是否强制安装
                     .setIsAutoInstall(true)//下载后自动安装
                     .setIsSilent(false)//是否静默下载
                     .setIsIgnorable(false) //是否可忽略该版本

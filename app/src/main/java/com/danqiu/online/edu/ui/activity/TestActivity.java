@@ -60,7 +60,8 @@ public class TestActivity extends BaseActivity<TestPresenter> implements TestCon
     Button btnDialogInput;
     @BindView(R.id.btn_dialog_update)
     Button btnUpdate;
-
+    @BindView(R.id.btn_dialog_update2)
+    Button btnUpdate2;
     @Override
     protected TestPresenter _createPresenter() {
         return new TestPresenter();
@@ -83,11 +84,14 @@ public class TestActivity extends BaseActivity<TestPresenter> implements TestCon
 
     @OnClick({R.id.btn_login,R.id.btn_dialog_succeed_toast, R.id.btn_dialog_fail_toast,
             R.id.btn_dialog_warn_toast, R.id.btn_dialog_wait, R.id.btn_dialog_message,
-            R.id.btn_dialog_update,R.id.btn_dialog_input})
+            R.id.btn_dialog_update,R.id.btn_dialog_input, R.id.btn_dialog_update2})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.btn_dialog_update:
                 getAppVersion();
+                break;
+            case  R.id.btn_dialog_update2:
+                //getAppVersion2();
                 break;
             case R.id.btn_dialog_succeed_toast:
                 // 成功对话框

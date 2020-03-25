@@ -22,7 +22,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="弹框更新" />
+                android:text="强制更新" />
+
+            <Button
+                android:id="@+id/btn_dialog_update2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="普通更新" />
 
             <Button
                 android:id="@+id/btn_dialog_succeed_toast"
